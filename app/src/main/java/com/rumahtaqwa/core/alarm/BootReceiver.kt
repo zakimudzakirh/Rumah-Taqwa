@@ -1,0 +1,25 @@
+package com.rumahtaqwa.core.alarm
+
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+@AndroidEntryPoint
+class BootReceiver : BroadcastReceiver() {
+    @Inject lateinit var alarmScheduler: AlarmScheduler
+    @Inject lateinit var reminderRepository: com.rumahtaqwa.domain.repository.ReminderRepository
+
+    override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
+        val pendingResult = goAsync()
+        CoroutineScope(Dispatchers.IO).launch {
+            reminderRepository.getAllEnabled().forEach { alarmScheduler.schedule(it) }
+            pendingResult.finish()
+        }
+    }
+}

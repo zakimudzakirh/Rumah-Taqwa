@@ -1,0 +1,39 @@
+# Gradle / Android Studio
+*.iml
+.gradle/
+/local.properties
+/build
+/captures
+.externalNativeBuild
+.cxx
+.kotlin/
+
+# Android Studio (.idea) — ignore semua kecuali file yang aman di-share
+.idea/*
+!.idea/gradle.xml
+!.idea/misc.xml
+!.idea/vcs.xml
+
+# Signing / keystore — jangan pernah commit kunci signing
+*.keystore
+*.jks
+keystore.properties
+key.properties
+
+# Firebase — config berisi API key project, tidak untuk repo publik
+app/google-services.json
+
+# Local unit test / profiling
+*.hprof
+
+# Claude Code
+CLAUDE.md
+.claude/
+
+# Cursor / VS Code
+.cursor/
+.vscode/
+
+# macOS
+.DS_Store
+**/.DS_Store
