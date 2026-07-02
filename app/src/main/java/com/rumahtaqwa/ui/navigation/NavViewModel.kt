@@ -18,6 +18,8 @@ class NavViewModel @Inject constructor(
 ) : ViewModel() {
     val isLoggedIn = authUseCase.isLoggedIn
 
+    fun isEmailVerified(): Boolean = authUseCase.isEmailVerified
+
     val themeMode = themeUseCase.getThemeMode()
         .stateIn(
             scope = viewModelScope,

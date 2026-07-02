@@ -2,6 +2,7 @@ package com.rumahtaqwa.ui.screens.main.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rumahtaqwa.core.util.SnackbarController
 import com.rumahtaqwa.core.util.ThemeMode
 import com.rumahtaqwa.core.util.toDayNumber
 import com.rumahtaqwa.core.util.toFormatDataString
@@ -29,7 +30,8 @@ class HomeViewModel @Inject constructor(
     private val authUseCase: AuthUseCase,
     private val ibadahUseCase: IbadahUseCase,
     private val quranUseCase: QuranUseCase,
-    private val themeUseCase: ThemeUseCase
+    private val themeUseCase: ThemeUseCase,
+    private val snackbarController: SnackbarController
 ) : ViewModel() {
     private val _state = MutableStateFlow(HomeState())
     val state = _state.asStateFlow()
@@ -48,7 +50,10 @@ class HomeViewModel @Inject constructor(
     private fun observerIbadah() {
         viewModelScope.launch {
             ibadahUseCase.getIbadah()
-                .catch { e -> _state.update { it.copy(error = e.message) } }
+                .catch { e ->
+                    snackbarController.showError(e.message ?: "Gagal memuat data ibadah")
+                    _state.update { it.copy(error = e.message, isLoading = false) }
+                }
                 .collect { ibadah ->
                     _state.update { it.copy(ibadah = ibadah, isLoading = false) }
                 }
@@ -59,6 +64,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             quranUseCase.getAllSurat()
                 .catch { e ->
+                    snackbarController.showError(e.message ?: "Gagal memuat data surat")
                     _state.update { it.copy(error = e.message) }
                 }
                 .collect { surat ->
@@ -75,6 +81,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             ibadahUseCase.getIbadahSettings()
                 .catch { e ->
+                    snackbarController.showError(e.message ?: "Gagal memuat pengaturan ibadah")
                     _state.update { it.copy(error = e.message) }
                 }
                 .collect { settings ->

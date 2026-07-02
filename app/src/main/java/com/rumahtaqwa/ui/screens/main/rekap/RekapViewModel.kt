@@ -5,6 +5,7 @@ import android.graphics.pdf.PdfDocument
 import android.os.Environment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rumahtaqwa.core.util.SnackbarController
 import com.rumahtaqwa.core.util.toDayNumber
 import com.rumahtaqwa.core.util.toFormatDataString
 import com.rumahtaqwa.data.model.IbadahSetting
@@ -26,7 +27,8 @@ import com.rumahtaqwa.domain.usecase.QuranUseCase
 @HiltViewModel
 class RekapViewModel @Inject constructor(
     private val ibadahUseCase: IbadahUseCase,
-    private val quranUseCase: QuranUseCase
+    private val quranUseCase: QuranUseCase,
+    private val snackbarController: SnackbarController
 ) : ViewModel() {
     private val _state = MutableStateFlow(RekapState())
     val state = _state.asStateFlow()
@@ -41,7 +43,10 @@ class RekapViewModel @Inject constructor(
         viewModelScope.launch {
             val listDate = getCurrentMonthDays(Date())
             ibadahUseCase.getIbadah()
-                .catch { e -> _state.update { it.copy(error = e.message) } }
+                .catch { e ->
+                    snackbarController.showError(e.message ?: "Gagal memuat data ibadah")
+                    _state.update { it.copy(error = e.message, isLoading = false) }
+                }
                 .collect { ibadah ->
                     _state.update {
                         it.copy(
@@ -58,6 +63,7 @@ class RekapViewModel @Inject constructor(
         viewModelScope.launch {
             ibadahUseCase.getIbadahSettings()
                 .catch { e ->
+                    snackbarController.showError(e.message ?: "Gagal memuat pengaturan ibadah")
                     _state.update { it.copy(error = e.message) }
                 }
                 .collect { settings ->
@@ -145,6 +151,7 @@ class RekapViewModel @Inject constructor(
         viewModelScope.launch {
             quranUseCase.getAllSurat()
                 .catch { e ->
+                    snackbarController.showError(e.message ?: "Gagal memuat data surat")
                     _state.update { it.copy(error = e.message) }
                 }
                 .collect { surat ->
@@ -311,10 +318,23 @@ class RekapViewModel @Inject constructor(
                     previousData = _state.value.originalData
                 )
                 _state.update { it.copy(error = null) }
+                snackbarController.showSuccess("Data rekap berhasil disimpan")
             } catch (e: Exception) {
                 _state.update { it.copy(error = e.message) }
+                snackbarController.showError(e.message ?: "Gagal menyimpan data rekap")
                 return@launch
             }
+        }
+    }
+
+    fun exportPdf(context: Context): File? {
+        return try {
+            val file = generatePdf(context)
+            snackbarController.showSuccess("PDF berhasil dibuat")
+            file
+        } catch (e: Exception) {
+            snackbarController.showError(e.message ?: "Gagal membuat PDF")
+            null
         }
     }
 

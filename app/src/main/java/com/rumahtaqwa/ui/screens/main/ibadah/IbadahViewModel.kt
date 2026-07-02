@@ -2,6 +2,7 @@ package com.rumahtaqwa.ui.screens.main.ibadah
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rumahtaqwa.core.util.SnackbarController
 import com.rumahtaqwa.data.model.IbadahSetting
 import com.rumahtaqwa.domain.usecase.IbadahUseCase
 import com.rumahtaqwa.domain.usecase.ReminderUseCase
@@ -16,7 +17,8 @@ import javax.inject.Inject
 @HiltViewModel
 class IbadahViewModel @Inject constructor(
     private val ibadahUseCase: IbadahUseCase,
-    private val reminderUseCase: ReminderUseCase
+    private val reminderUseCase: ReminderUseCase,
+    private val snackbarController: SnackbarController
 ) : ViewModel() {
     private val _state = MutableStateFlow(IbadahState())
     val state = _state.asStateFlow()
@@ -30,7 +32,10 @@ class IbadahViewModel @Inject constructor(
     private fun observerIbadah() {
         viewModelScope.launch {
             ibadahUseCase.getIbadah()
-                .catch { e -> _state.update { it.copy(error = e.message) } }
+                .catch { e ->
+                    snackbarController.showError(e.message ?: "Gagal memuat data ibadah")
+                    _state.update { it.copy(error = e.message, isLoading = false) }
+                }
                 .collect { ibadah ->
                     _state.update { it.copy(ibadah = ibadah, isLoading = false) }
                 }
@@ -41,7 +46,8 @@ class IbadahViewModel @Inject constructor(
         viewModelScope.launch {
             ibadahUseCase.getIbadahSettings()
                 .catch { e ->
-                    _state.update { it.copy(error = e.message) }
+                    snackbarController.showError(e.message ?: "Gagal memuat pengaturan ibadah")
+                    _state.update { it.copy(error = e.message, isLoading = false) }
                 }
                 .collect { settings ->
                     val updatedSettings = settings?.toMutableMap() ?: mutableMapOf()
@@ -66,7 +72,10 @@ class IbadahViewModel @Inject constructor(
     private fun observerReminders() {
         viewModelScope.launch {
             reminderUseCase.observeAllReminders()
-                .catch { e -> _state.update { it.copy(error = e.message) } }
+                .catch { e ->
+                    snackbarController.showError(e.message ?: "Gagal memuat pengingat")
+                    _state.update { it.copy(error = e.message) }
+                }
                 .collect { reminders ->
                     val map = reminders.associateBy { it.ibadahId }
                     _state.update { it.copy(reminders = map) }
@@ -95,8 +104,14 @@ class IbadahViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
             val settings = _state.value.settings ?: return@launch
-            val result = ibadahUseCase.updateSettings(settings)
-            _state.update { it.copy(isLoading = false, error = result.toString()) }
+            try {
+                ibadahUseCase.updateSettings(settings)
+                snackbarController.showSuccess("Pengaturan berhasil diterapkan")
+                _state.update { it.copy(isLoading = false) }
+            } catch (e: Exception) {
+                snackbarController.showError(e.message ?: "Gagal menerapkan pengaturan")
+                _state.update { it.copy(isLoading = false, error = e.message) }
+            }
         }
     }
 

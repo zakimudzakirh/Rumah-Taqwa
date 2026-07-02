@@ -123,7 +123,7 @@ fun RekapScreen(
                             contentColor = MaterialTheme.colorScheme.onPrimary
                         ),
                         onClick = {
-                            val file = viewModel.generatePdf(context)
+                            val file = viewModel.exportPdf(context) ?: return@IconButton
 
                             val uri = FileProvider.getUriForFile(
                                 context,

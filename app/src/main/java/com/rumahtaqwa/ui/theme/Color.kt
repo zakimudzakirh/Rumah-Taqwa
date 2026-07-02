@@ -49,3 +49,6 @@ val AmberBg   = Color(0xFFFFFBEB)  // primaryContainer light
 
 // ── Semantic ─────────────────────────────
 //val Red400    = Color(0xFFF87171)
+
+// ── Snackbar (Success) ───────────────────
+val Green600  = Color(0xFF16A34A)  // success snackbar container

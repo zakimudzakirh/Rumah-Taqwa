@@ -8,6 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.rumahtaqwa.ui.screens.auth.AuthScreen
+import com.rumahtaqwa.ui.screens.auth.verify.VerifyEmailScreen
 import com.rumahtaqwa.ui.screens.splash.SplashScreen
 
 @Composable
@@ -29,10 +30,10 @@ fun AppNavGraph(
         ) {
             SplashScreen(
                 onFinished = {
-                    val startDestination = if (viewModel.isLoggedIn) {
-                        Routes.HOME
-                    } else {
-                        Routes.AUTH
+                    val startDestination = when {
+                        !viewModel.isLoggedIn -> Routes.AUTH
+                        viewModel.isEmailVerified() -> Routes.HOME
+                        else -> Routes.VERIFY_EMAIL
                     }
                     navController.navigate(startDestination) {
                         popUpTo(Routes.SPLASH) { inclusive = true }
@@ -44,8 +45,28 @@ fun AppNavGraph(
         composable(Routes.AUTH) {
             AuthScreen(
                 onAuthSuccess = {
-                    navController.navigate(Routes.HOME) {
+                    val destination = if (viewModel.isEmailVerified()) {
+                        Routes.HOME
+                    } else {
+                        Routes.VERIFY_EMAIL
+                    }
+                    navController.navigate(destination) {
                         popUpTo(Routes.AUTH) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Routes.VERIFY_EMAIL) {
+            VerifyEmailScreen(
+                onVerified = {
+                    navController.navigate(Routes.HOME) {
+                        popUpTo(Routes.VERIFY_EMAIL) { inclusive = true }
+                    }
+                },
+                onLogout = {
+                    navController.navigate(Routes.AUTH) {
+                        popUpTo(0) { inclusive = true }
                     }
                 }
             )
