@@ -1,10 +1,13 @@
 package com.rumahtaqwa.ui.navigation
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -25,6 +28,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.rumahtaqwa.R
+import com.rumahtaqwa.ui.components.snackbar.AppSnackbarHost
 import com.rumahtaqwa.ui.screens.main.home.HomeScreen
 import com.rumahtaqwa.ui.screens.main.ibadah.IbadahScreen
 import com.rumahtaqwa.ui.screens.main.rekap.RekapScreen
@@ -75,80 +79,89 @@ fun MainNavigation(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    Scaffold(
-        bottomBar = {
-            NavigationBar(
-                containerColor = MaterialTheme.colorScheme.background,
-                modifier = Modifier.navigationBarsPadding().height(55.dp)
-            ) {
-                bottomNavItems.forEach { item ->
-                    NavigationBarItem(
-                        selected = currentRoute == item.route,
-                        onClick = {
-                            navController.navigate(item.route) {
-                                popUpTo(navController.graph.startDestinationId) {
-                                    saveState = true
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            bottomBar = {
+                NavigationBar(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    modifier = Modifier.navigationBarsPadding().height(55.dp)
+                ) {
+                    bottomNavItems.forEach { item ->
+                        NavigationBarItem(
+                            selected = currentRoute == item.route,
+                            onClick = {
+                                navController.navigate(item.route) {
+                                    popUpTo(navController.graph.startDestinationId) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                        icon = {
-                            Column (
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier.padding(top = 5.dp)
-                            ) {
+                            },
+                            icon = {
+                                Column (
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier.padding(top = 5.dp)
+                                ) {
 
-                                Icon(
-                                    painter = painterResource(item.icon),
-                                    contentDescription = null
-                                )
+                                    Icon(
+                                        painter = painterResource(item.icon),
+                                        contentDescription = null
+                                    )
 
-                                Text(
-                                    item.label,
-                                    fontSize = 12.sp,
-                                    style = MaterialTheme.typography.titleSmall,
-                                )
-                            }
-                        },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.primary,
-                            selectedTextColor = MaterialTheme.colorScheme.primary,
-                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            indicatorColor = Color.Transparent,
+                                    Text(
+                                        item.label,
+                                        fontSize = 12.sp,
+                                        style = MaterialTheme.typography.titleSmall,
+                                    )
+                                }
+                            },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = MaterialTheme.colorScheme.primary,
+                                selectedTextColor = MaterialTheme.colorScheme.primary,
+                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                indicatorColor = Color.Transparent,
+                            )
                         )
-                    )
+                    }
                 }
             }
-        }
-    ) { _ ->
-        NavHost(
-            navController = navController,
-            startDestination = Routes.HOME,
+        ) { _ ->
+            NavHost(
+                navController = navController,
+                startDestination = Routes.HOME,
 //            modifier = Modifier.padding(padding)
-        ) {
+            ) {
 
-            composable(Routes.HOME) {
-                HomeScreen()
-            }
+                composable(Routes.HOME) {
+                    HomeScreen()
+                }
 
-            composable(Routes.IBADAH) {
-                IbadahScreen()
-            }
+                composable(Routes.IBADAH) {
+                    IbadahScreen()
+                }
 
-            composable(Routes.REKAP) {
-                RekapScreen()
-            }
+                composable(Routes.REKAP) {
+                    RekapScreen()
+                }
 
-            composable(Routes.SETTINGS) {
-                SettingsScreen(
-                    onLogout = onLogout
-                )
+                composable(Routes.SETTINGS) {
+                    SettingsScreen(
+                        onLogout = onLogout
+                    )
+                }
+
             }
 
         }
 
+        AppSnackbarHost(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .statusBarsPadding()
+                .padding(top = 8.dp)
+        )
     }
 
 }

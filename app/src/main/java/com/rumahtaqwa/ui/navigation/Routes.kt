@@ -3,6 +3,7 @@ package com.rumahtaqwa.ui.navigation
 object Routes {
     const val SPLASH = "splash"
     const val AUTH = "auth"
+    const val VERIFY_EMAIL = "verify_email"
 
     const val HOME = "home"
     const val IBADAH = "ibadah"

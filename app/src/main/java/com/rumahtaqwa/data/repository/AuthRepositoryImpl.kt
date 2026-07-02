@@ -17,6 +17,9 @@ class AuthRepositoryImpl @Inject constructor(
     override val isLoggedIn: Boolean
         get() = auth.currentUser != null
 
+    override val isEmailVerified: Boolean
+        get() = auth.currentUser?.isEmailVerified == true
+
     override suspend fun loginWithEmail(
         email: String,
         password: String,
@@ -37,7 +40,22 @@ class AuthRepositoryImpl @Inject constructor(
             displayName = name
         }
         result.user?.updateProfile(profileUpdates)?.await()
+        result.user?.sendEmailVerification()?.await()
         Result.success(result.user!!)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    override suspend fun sendEmailVerification(): Result<Unit> = try {
+        auth.currentUser?.sendEmailVerification()?.await()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    override suspend fun reloadUser(): Result<Unit> = try {
+        auth.currentUser?.reload()?.await()
+        Result.success(Unit)
     } catch (e: Exception) {
         Result.failure(e)
     }
